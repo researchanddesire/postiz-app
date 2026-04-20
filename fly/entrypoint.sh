@@ -22,16 +22,25 @@ ln -sfn /data/log/nginx /var/log/nginx || true
 
 # ---- postgres first-boot init ----------------------------------------------
 if [ ! -s "/data/pg/PG_VERSION" ]; then
+  # If a previous attempt left partial files behind, wipe them — initdb
+  # refuses to run into a non-empty directory.
+  if [ -n "$(ls -A /data/pg 2>/dev/null)" ]; then
+    log "clearing partial postgres init at /data/pg"
+    rm -rf /data/pg/* /data/pg/.[!.]* 2>/dev/null || true
+  fi
+
   log "initializing postgres cluster at /data/pg"
+  # Trust auth on loopback. The machine's only network is Fly's private
+  # 6pn interface; the postgres listener is bound to 127.0.0.1, so no
+  # external clients can reach it. DATABASE_URL still carries a password
+  # for Prisma's benefit; postgres ignores it under trust.
   gosu postgres /usr/lib/postgresql/15/bin/initdb \
     --pgdata=/data/pg \
     --username="${POSTGRES_USER}" \
-    --pwfile=<(printf '%s' "${POSTGRES_PASSWORD}") \
     --encoding=UTF8 \
     --auth-local=trust \
-    --auth-host=md5
+    --auth-host=trust
 
-  # Only listen on loopback — Fly's firewall makes this redundant but defensive.
   {
     echo "listen_addresses = '127.0.0.1'"
     echo "port = 5432"
@@ -39,8 +48,6 @@ if [ ! -s "/data/pg/PG_VERSION" ]; then
     echo "max_connections = 100"
     echo "logging_collector = off"
   } >> /data/pg/postgresql.conf
-
-  echo "host all all 127.0.0.1/32 md5" >> /data/pg/pg_hba.conf
 fi
 
 # ---- hand off to supervisord -----------------------------------------------
