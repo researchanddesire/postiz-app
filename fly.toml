@@ -1,0 +1,44 @@
+app = "postiz-rad"
+primary_region = "sjc"
+
+[build]
+  dockerfile = "fly/Dockerfile"
+
+[env]
+  FRONTEND_URL = "https://postiz-rad.fly.dev"
+  NEXT_PUBLIC_BACKEND_URL = "https://postiz-rad.fly.dev/api"
+  MAIN_URL = "https://postiz-rad.fly.dev"
+  BACKEND_INTERNAL_URL = "http://localhost:3000"
+  DATABASE_URL = "postgresql://postiz:postiz@127.0.0.1:5432/postiz?schema=public"
+  REDIS_URL = "redis://127.0.0.1:6379"
+  TEMPORAL_ADDRESS = "127.0.0.1:7233"
+  STORAGE_PROVIDER = "local"
+  UPLOAD_DIRECTORY = "/data/uploads"
+  NEXT_PUBLIC_UPLOAD_DIRECTORY = "/data/uploads"
+  IS_GENERAL = "true"
+  DISABLE_REGISTRATION = "false"
+  API_LIMIT = "30"
+  NX_ADD_PLUGINS = "false"
+  NODE_ENV = "production"
+
+[[mounts]]
+  source = "postiz_data"
+  destination = "/data"
+  initial_size = "20gb"
+
+[http_service]
+  internal_port = 5000
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 400
+    soft_limit = 250
+
+[[vm]]
+  size = "performance-2x"
+  memory = "4gb"

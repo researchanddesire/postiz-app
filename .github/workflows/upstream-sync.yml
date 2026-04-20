@@ -1,0 +1,121 @@
+name: Upstream Sync
+
+on:
+  schedule:
+    # Mondays at 09:00 UTC (~02:00 PT, ~04:00 CT).
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Open PR from gitroomhq/postiz-app main
+    runs-on: ubuntu-latest
+    env:
+      UPSTREAM_REPO: gitroomhq/postiz-app
+      UPSTREAM_BRANCH: main
+      BASE_BRANCH: main
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          git fetch upstream "${UPSTREAM_BRANCH}"
+
+      - name: Skip if already in sync
+        id: check
+        run: |
+          LOCAL=$(git rev-parse HEAD)
+          UPSTREAM=$(git rev-parse "upstream/${UPSTREAM_BRANCH}")
+          if git merge-base --is-ancestor "${UPSTREAM}" "${LOCAL}"; then
+            echo "already_synced=true" >> "$GITHUB_OUTPUT"
+            echo "Already up to date with upstream; nothing to do."
+          else
+            echo "already_synced=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create sync branch
+        if: steps.check.outputs.already_synced != 'true'
+        id: branch
+        run: |
+          DATE=$(date -u +%Y-%m-%d)
+          BRANCH="upstream-sync/${DATE}"
+          # Reuse existing branch for the day if re-run.
+          if git ls-remote --exit-code --heads origin "${BRANCH}" >/dev/null 2>&1; then
+            git fetch origin "${BRANCH}:${BRANCH}"
+            git checkout "${BRANCH}"
+          else
+            git checkout -b "${BRANCH}"
+          fi
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+      - name: Merge upstream
+        if: steps.check.outputs.already_synced != 'true'
+        id: merge
+        run: |
+          set +e
+          git merge --no-ff "upstream/${UPSTREAM_BRANCH}" \
+            -m "chore: sync with ${UPSTREAM_REPO}@${UPSTREAM_BRANCH}"
+          RC=$?
+          if [ $RC -ne 0 ]; then
+            echo "has_conflicts=true" >> "$GITHUB_OUTPUT"
+            # Commit the conflict markers so humans can review in the PR.
+            git add -A
+            git commit -m "chore: upstream sync with conflicts (resolve before merging)" || true
+          else
+            echo "has_conflicts=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push branch
+        if: steps.check.outputs.already_synced != 'true'
+        run: git push origin "${{ steps.branch.outputs.branch }}"
+
+      - name: Open or update PR
+        if: steps.check.outputs.already_synced != 'true'
+        env:
+          BRANCH: ${{ steps.branch.outputs.branch }}
+          HAS_CONFLICTS: ${{ steps.merge.outputs.has_conflicts }}
+        run: |
+          TITLE="chore: weekly upstream sync (${BRANCH#upstream-sync/})"
+          if [ "${HAS_CONFLICTS}" = "true" ]; then
+            TITLE="${TITLE} — CONFLICTS"
+          fi
+
+          BODY=$(cat <<EOF
+          Automated weekly sync with \`${UPSTREAM_REPO}@${UPSTREAM_BRANCH}\`.
+
+          - Source: https://github.com/${UPSTREAM_REPO}/commits/${UPSTREAM_BRANCH}
+          - Merge result: $( [ "${HAS_CONFLICTS}" = "true" ] && echo "**conflicts — resolve manually**" || echo "clean" )
+
+          Review env-var or schema drift before merging; \`fly-deploy.yml\` will redeploy automatically on push to \`${BASE_BRANCH}\`.
+          EOF
+          )
+
+          # Create the PR if it doesn't exist, otherwise just make sure the body is current.
+          if ! gh pr view "${BRANCH}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh pr create \
+              --repo "${GITHUB_REPOSITORY}" \
+              --base "${BASE_BRANCH}" \
+              --head "${BRANCH}" \
+              --title "${TITLE}" \
+              --body "${BODY}" \
+              --label "upstream-sync"
+          else
+            gh pr edit "${BRANCH}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --title "${TITLE}" \
+              --body "${BODY}" || true
+          fi
