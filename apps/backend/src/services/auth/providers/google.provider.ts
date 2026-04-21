@@ -64,7 +64,7 @@ export class GoogleProvider extends AuthProviderAbstract {
         err?.data ||
         err?.message;
       console.error('[GoogleProvider.getToken] google error:', {
-        redirectUri: client.redirectUri,
+        redirectUri: `${process.env.FRONTEND_URL}/integrations/social/youtube`,
         clientIdPrefix: (process.env.YOUTUBE_CLIENT_ID || '').slice(0, 12),
         codePrefix: (code || '').slice(0, 12),
         googleDetail,
