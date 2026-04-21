@@ -52,8 +52,25 @@ export class GoogleProvider extends AuthProviderAbstract {
 
   async getToken(code: string) {
     const { client, oauth2 } = clientAndYoutube();
-    const { tokens } = await client.getToken(code);
-    return tokens.access_token;
+    try {
+      const { tokens } = await client.getToken(code);
+      return tokens.access_token;
+    } catch (err: any) {
+      // Google wraps OAuth errors in GaxiosError with full response on err.response.
+      // Without this, NestJS turns the "invalid_grant" string into a generic 500.
+      const googleDetail =
+        err?.response?.data ||
+        err?.response?.body ||
+        err?.data ||
+        err?.message;
+      console.error('[GoogleProvider.getToken] google error:', {
+        redirectUri: client.redirectUri,
+        clientIdPrefix: (process.env.YOUTUBE_CLIENT_ID || '').slice(0, 12),
+        codePrefix: (code || '').slice(0, 12),
+        googleDetail,
+      });
+      throw err;
+    }
   }
 
   async getUser(providerToken: string) {
