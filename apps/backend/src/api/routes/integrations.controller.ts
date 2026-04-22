@@ -116,6 +116,7 @@ export class IntegrationsController {
             changeNickName: !!findIntegration?.changeNickname,
             customer: p.customer,
             additionalSettings: p.additionalSettings || '[]',
+            postSettings: p.postSettings || null,
           };
         })
       ),
@@ -134,6 +135,20 @@ export class IntegrationsController {
 
     await this._integrationService.updateProviderSettings(org.id, id, body);
   }
+
+  @Post('/:id/post-settings')
+  async updateProviderPostSettings(
+    @GetOrgFromRequest() org: Organization,
+    @Param('id') id: string,
+    @Body('postSettings') body: string
+  ) {
+    if (typeof body !== 'string') {
+      throw new Error('Invalid body');
+    }
+
+    await this._integrationService.updateProviderPostSettings(org.id, id, body);
+  }
+
   @Post('/:id/nickname')
   async setNickname(
     @GetOrgFromRequest() org: Organization,

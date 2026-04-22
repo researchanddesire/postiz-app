@@ -80,6 +80,14 @@ export class IntegrationService {
     );
   }
 
+  updateProviderPostSettings(org: string, id: string, postSettings: string) {
+    return this._integrationRepository.updateProviderPostSettings(
+      org,
+      id,
+      postSettings
+    );
+  }
+
   checkPreviousConnections(org: string, id: string) {
     return this._integrationRepository.checkPreviousConnections(org, id);
   }

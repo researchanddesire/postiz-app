@@ -98,6 +98,18 @@ export class IntegrationRepository {
     });
   }
 
+  updateProviderPostSettings(org: string, id: string, postSettings: string) {
+    return this._integration.model.integration.update({
+      where: {
+        id,
+        organizationId: org,
+      },
+      data: {
+        postSettings,
+      },
+    });
+  }
+
   async setTimes(org: string, id: string, times: IntegrationTimeDto) {
     return this._integration.model.integration.update({
       select: {

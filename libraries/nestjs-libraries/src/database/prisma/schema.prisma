@@ -334,6 +334,7 @@ model Integration {
   customerId            String?
   rootInternalId        String?
   additionalSettings    String?                @default("[]")
+  postSettings          String?
   exisingPlugData       ExisingPlugData[]
   customer              Customer?              @relation(fields: [customerId], references: [id])
   organization          Organization           @relation(fields: [organizationId], references: [id])

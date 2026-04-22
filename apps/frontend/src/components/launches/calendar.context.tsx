@@ -92,6 +92,7 @@ export interface Integrations {
   picture: string;
   changeProfilePicture: boolean;
   additionalSettings: string;
+  postSettings?: string | null;
   changeNickName: boolean;
   time: {
     time: number;

@@ -22,6 +22,8 @@ import { InternalChannels } from '@gitroom/frontend/components/launches/internal
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 import SafeImage from '@gitroom/react/helpers/safe.image';
+import { Button } from '@gitroom/react/form/button';
+import { useToaster } from '@gitroom/react/toaster/toaster';
 
 class Empty {
   @IsOptional()
@@ -75,6 +77,7 @@ export const withProvider = function <T extends object>(params: {
   return forwardRef((props: { id: string }, ref) => {
     const t = useT();
     const fetch = useFetch();
+    const toaster = useToaster();
     const {
       current,
       selectedIntegration,
@@ -182,15 +185,68 @@ export const withProvider = function <T extends object>(params: {
       return global;
     }, [internal, global, isGlobal]);
 
+    const defaultFormValues = useMemo(() => {
+      if (Object.keys(selectedIntegration.settings).length > 0) {
+        return { ...selectedIntegration.settings };
+      }
+      try {
+        const parsed = JSON.parse(
+          selectedIntegration.integration.postSettings || '{}'
+        );
+        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length) {
+          return parsed;
+        }
+      } catch {
+        // ignore malformed saved defaults
+      }
+      return undefined;
+    }, [selectedIntegration]);
+
     const form = useForm({
       resolver: classValidatorResolver(dto || Empty),
-      ...(Object.keys(selectedIntegration.settings).length > 0
-        ? { values: { ...selectedIntegration.settings } }
-        : {}),
+      ...(defaultFormValues ? { values: defaultFormValues } : {}),
       mode: 'all',
       criteriaMode: 'all',
       reValidateMode: 'onChange',
     });
+
+    const saveAsDefault = useCallback(async () => {
+      const values = form.getValues();
+      const hasValue = Object.values(values).some(
+        (v) => v !== undefined && v !== null && v !== ''
+      );
+      if (!hasValue) {
+        toaster.show(
+          t(
+            'nothing_to_save_as_default',
+            'Fill in the settings before saving as default.'
+          ),
+          'warning'
+        );
+        return;
+      }
+      try {
+        await fetch(
+          `/integrations/${selectedIntegration.integration.id}/post-settings`,
+          {
+            method: 'POST',
+            body: JSON.stringify({ postSettings: JSON.stringify(values) }),
+          }
+        );
+        toaster.show(
+          t(
+            'saved_as_default_for_this_channel',
+            'Saved as default for this channel'
+          ),
+          'success'
+        );
+      } catch {
+        toaster.show(
+          t('failed_to_save_default', 'Failed to save default settings'),
+          'warning'
+        );
+      }
+    }, [form, selectedIntegration.integration.id, fetch, t, toaster]);
 
     useImperativeHandle(
       ref,
@@ -337,6 +393,20 @@ export const withProvider = function <T extends object>(params: {
                     </div>
                   )}
                   <SettingsComponent />
+                  {!!SettingsComponent && !dummy && (
+                    <div className="mt-[12px] flex">
+                      <Button
+                        type="button"
+                        secondary={true}
+                        onClick={saveAsDefault}
+                      >
+                        {t(
+                          'save_as_default_for_this_channel',
+                          'Save as default for this channel'
+                        )}
+                      </Button>
+                    </div>
+                  )}
                   {!!data?.internalPlugs?.length && !dummy && (
                     <InternalChannels plugs={data?.internalPlugs} />
                   )}
