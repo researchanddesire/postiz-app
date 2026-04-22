@@ -5,9 +5,9 @@ primary_region = "sjc"
   dockerfile = "fly/Dockerfile"
 
 [env]
-  FRONTEND_URL = "https://postiz-rad.fly.dev"
-  NEXT_PUBLIC_BACKEND_URL = "https://postiz-rad.fly.dev/api"
-  MAIN_URL = "https://postiz-rad.fly.dev"
+  FRONTEND_URL = "https://postiz.researchanddesire.com"
+  NEXT_PUBLIC_BACKEND_URL = "https://postiz.researchanddesire.com/api"
+  MAIN_URL = "https://postiz.researchanddesire.com"
   BACKEND_INTERNAL_URL = "http://localhost:3000"
   DATABASE_URL = "postgresql://postiz:postiz@127.0.0.1:5432/postiz?schema=public"
   REDIS_URL = "redis://127.0.0.1:6379"
