@@ -1,0 +1,24 @@
+{
+  "name": "@postiz/reddit-devvit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Postiz scheduler — Devvit app that drains Postiz's queue and submits posts on Reddit.",
+  "scripts": {
+    "login": "devvit login",
+    "dev": "devvit playtest",
+    "build": "devvit build",
+    "upload": "devvit upload",
+    "launch": "devvit publish",
+    "install-app": "devvit install",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@devvit/web": "latest",
+    "@devvit/server": "latest",
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "devvit": "latest",
+    "typescript": "^5.5.4"
+  }
+}

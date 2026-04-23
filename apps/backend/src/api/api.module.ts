@@ -32,6 +32,7 @@ import { SetsController } from '@gitroom/backend/api/routes/sets.controller';
 import { ThirdPartyController } from '@gitroom/backend/api/routes/third-party.controller';
 import { MonitorController } from '@gitroom/backend/api/routes/monitor.controller';
 import { NoAuthIntegrationsController } from '@gitroom/backend/api/routes/no.auth.integrations.controller';
+import { RedditDevvitController } from '@gitroom/backend/api/routes/reddit-devvit.controller';
 import { EnterpriseController } from '@gitroom/backend/api/routes/enterprise.controller';
 import { OAuthAppController } from '@gitroom/backend/api/routes/oauth-app.controller';
 import { ApprovedAppsController } from '@gitroom/backend/api/routes/approved-apps.controller';
@@ -74,6 +75,7 @@ const authenticatedController = [
     MonitorController,
     EnterpriseController,
     NoAuthIntegrationsController,
+    RedditDevvitController,
     OAuthController,
     ...authenticatedController,
   ],

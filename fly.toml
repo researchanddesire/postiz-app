@@ -1,3 +1,4 @@
+# Copy remote [env] into a gitignored file: pnpm env:fly:pull  ->  .env.local
 app = "postiz-rad"
 primary_region = "sjc"
 
@@ -20,6 +21,7 @@ primary_region = "sjc"
   API_LIMIT = "30"
   NX_ADD_PLUGINS = "false"
   NODE_ENV = "production"
+  NEXT_PUBLIC_POSTIZ_REDDIT_DEVVIT_APP_SLUG = "postiz-scheduler"
 
 [[mounts]]
   source = "postiz_data"

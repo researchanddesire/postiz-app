@@ -1,0 +1,52 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "postiz-scheduler",
+  "server": {
+    "entry": "src/server/index.ts"
+  },
+  "permissions": {
+    "reddit": {
+      "enable": true
+    },
+    "http": {
+      "enable": true,
+      "domains": ["postiz.researchanddesire.com"]
+    },
+    "redis": true
+  },
+  "menu": {
+    "items": [
+      {
+        "label": "Link this subreddit to Postiz",
+        "description": "Pair this subreddit with your Postiz account",
+        "forUserType": "moderator",
+        "location": "subreddit",
+        "endpoint": "/internal/menu/link-postiz"
+      },
+      {
+        "label": "Unlink from Postiz",
+        "description": "Stop Postiz from submitting to this subreddit",
+        "forUserType": "moderator",
+        "location": "subreddit",
+        "endpoint": "/internal/menu/unlink-postiz"
+      }
+    ]
+  },
+  "forms": {
+    "pair-code-form": "/internal/forms/link-postiz"
+  },
+  "scheduler": {
+    "tasks": {
+      "drain-postiz": {
+        "endpoint": "/internal/scheduler/drain-postiz",
+        "cron": "*/1 * * * *"
+      }
+    }
+  },
+  "marketingAssets": {
+    "icon": "assets/icon.png"
+  },
+  "dev": {
+    "subreddit": "postiz_dev"
+  }
+}
