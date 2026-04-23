@@ -1,3 +1,8 @@
 packages:
   - apps/*
   - libraries/*
+  # The Postiz Devvit app runs on Reddit's infra and is deployed separately
+  # via `npx devvit upload` from inside apps/reddit-devvit. Keep it out of the
+  # Postiz pnpm workspace so the Fly.io build doesn't try to resolve Devvit
+  # SDK packages against the shared lockfile.
+  - '!apps/reddit-devvit'

@@ -21,3 +21,6 @@ dist
 .git
 .github
 reports
+# Devvit app is deployed separately via `npx devvit upload`; keep it out of the
+# Fly.io build context so pnpm doesn't try to resolve it against the main lockfile.
+apps/reddit-devvit
