@@ -130,10 +130,7 @@ export const RedditDevvitConnect: FC<{ state: string }> = ({ state }) => {
       )}
       {status.status === 'bound' && (
         <div className="text-[14px] text-green-400">
-          {t('paired_success', 'Paired to r/{{subreddit}} as u/{{user}}. Redirecting...', {
-            subreddit: status.subreddit,
-            user: status.redditUsername,
-          })}
+          {`Paired to r/${status.subreddit} as u/${status.redditUsername}. Redirecting...`}
         </div>
       )}
       {status.status === 'expired' && (

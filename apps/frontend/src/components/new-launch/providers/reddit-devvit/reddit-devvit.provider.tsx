@@ -50,7 +50,7 @@ const RedditDevvitPreview: FC = () => {
           <div className="flex flex-col">
             <div className="text-[12px] font-[700]">r/{subreddit}</div>
             <div className="text-[11px] opacity-70">
-              Posted by the Postiz app on behalf of u/{integration?.profile}
+              Posted by the Postiz Devvit app
             </div>
           </div>
         </div>
@@ -94,11 +94,7 @@ const RedditDevvitSettings: FC = () => {
   return (
     <div className="flex flex-col gap-[12px]">
       <div className="text-[12px] opacity-70">
-        {t(
-          'reddit_devvit_target',
-          'Posting to r/{{subreddit}}. Install the Postiz Devvit app in another subreddit to add more channels.',
-          { subreddit }
-        )}
+        {`Posting to r/${subreddit}. Install the Postiz Devvit app in another subreddit to add more channels.`}
       </div>
 
       <div className="flex gap-[8px]">
@@ -123,18 +119,20 @@ const RedditDevvitSettings: FC = () => {
 
       <Input
         label={t('title', 'Title')}
-        {...register(`subreddit.0.value.title` as const, { required: true })}
+        {...(register(`subreddit.0.value.title` as const, {
+          required: true,
+        }) as any)}
       />
       <input
         type="hidden"
         value={subreddit}
-        {...register(`subreddit.0.value.subreddit` as const)}
+        {...(register(`subreddit.0.value.subreddit` as const) as any)}
       />
       {typeWatch === 'link' && (
         <Input
           label={t('url', 'URL')}
           placeholder="https://"
-          {...register(`subreddit.0.value.url` as const)}
+          {...(register(`subreddit.0.value.url` as const) as any)}
         />
       )}
     </div>
